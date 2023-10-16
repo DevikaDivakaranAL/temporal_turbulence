@@ -1,0 +1,67 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import j1  # Bessel function of the first kind
+from scipy.integrate import quad  # For numerical integration
+from scipy.fft import ifft  # Inverse Fourier Transform
+import mpmath as mp
+
+# Constants
+l0 = 0.004  # Inner scale, in m
+L0 = 1.6  # Outer scale, in mgit
+k_m = 5.92 / l0
+k_0 = 2 * np.pi / L0
+Tr = -2  # optics losses of the receiver
+V = 76  # wind speed in m/s  (Updated to 72 m/s)
+D = 0.32  # aperture diameter in m ( 32 cm)
+
+# Frequency range
+frequencies = np.linspace(0.01, 0.01, 500)  # Avoiding division by zero at f=0
+
+C_n2 = 2.68e-14
+#     0.2 * (0.00594 * (V / 27.) ** 2. * (122 * 10 ** -5.) ** 10. * mp.exp(-122 / 1000.) +
+#               2.7e-16 * mp.exp(-122 / 1500.) + 9e-14 * mp.exp(-122 / 100.))
+# print(C_n2)
+
+#spatial power spectrum of s(r), the amplitude of the speckle pattern, s(r)
+def Ws(k):
+    Ws_k = np.sqrt((0.033 * C_n2 * np.exp(-k ** 2 / k_m ** 2)) / (k ** 2 + k_0 ** 2) ** (11 / 6))
+    return Ws_k
+
+#spatial power spectrum of a(r), aperture pattern of a(r)
+def Wa(k):
+    Wa_k = (np.pi * D ** 2) / 4 * 2 * j1(np.pi * D * k) / (np.pi * D * k)
+    return Wa_k
+
+def We(f):
+    def integrand(k):
+        combined_frequency = np.sqrt(k ** 2 + (f ** 2 / V ** 2))
+        return  Wa(combined_frequency) * np.conj(Ws(combined_frequency))
+
+    integral, _ = quad(lambda k: (integrand(k)), 0, np.inf)
+    # real_part, _ = quad(lambda k: np.real(integrand(k)), 0, np.inf)
+    # imag_part, _ = quad(lambda k: np.imag(integrand(k)), 0, np.inf)
+    # We_f = real_part + 1j * imag_part
+    We_f = (Tr / V) * integral
+    return We_f
+
+# Calculate We(f) for all frequencies
+We_f_values = np.array([We(f) for f in frequencies])
+
+# Equation (17)
+theta_rand_f = np.random.uniform(0, 2 * np.pi, len(frequencies))
+We_prime_f = We_f_values * np.exp(1j * theta_rand_f)
+
+# Inverse Fourier Transform to get the time-varying electrical signals
+e_t = ifft(We_prime_f)
+
+RescaledIntensity = (e_t / np.mean(e_t)) * 0.093  # For '23.5°'
+
+# Plotting Normalized Intensity vs Time
+plt.figure(figsize=(10, 5))
+plt.plot(RescaledIntensity)
+plt.title(f'Normalized Intensity vs Time [rms wind speed : {V},Aperture Diameter:  {D}]')
+plt.xlabel('Time (s)')
+plt.ylabel('Normalized Intensity')
+plt.grid(True)
+
+plt.show()
