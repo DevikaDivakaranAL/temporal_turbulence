@@ -1,5 +1,5 @@
-from ComputeRefractiveIndexStructureParameter import *
 from ComputeWindSpeed import *
+from ComputeRefractiveIndexStructureParameter import *
 from ComputeTurbulenceStrength import *
 from ComputeBeamEffects import *
 from ComputeScintillationIndex import *
