@@ -55,29 +55,32 @@ def main_fade_simulation(link_geometry, C2n_model, heights, divergence, M2, wave
     beamEffectsModel.compute_beam_effects()
     scintillationIndexModel.compute_scintillation_index()
 
+    # print('------------------------------------------ Results ------------------------------------------')
+    # print('Link geometry:                                         {}'.format(turbulenceStrengthModel.geometry))
+    # print('Height:                                                {:.2e} m'.format(windModel.height))
+    # print('wind speed:                                            {:.2e} m/s'.format(windModel.rms_wind_speed))
+    # print('Slew rate:                                             {:.2e} '.format(windModel.Ws))
+    # print("Gateway altitude:                                      {:.2e} m".format(turbulenceStrengthModel.ALT_altitude))
+    # print("Satellite altitude:                                    {:.2e} m".format(turbulenceStrengthModel.SLT_altitude))
+    # print('Link length:                                           {:.2e} m'.format(turbulenceStrengthModel.R))
+    # print('Wavelength:                                            {:.2e} m'.format(turbulenceStrengthModel.wavelength))
+    # print('Turbulence regime:                                     {}'.format(turbulenceStrengthModel.turbulence_strength))
+    # print('Rytov variance   :                                     {:.2e}'.format(turbulenceStrengthModel.rytov_variance))
+    # print('Beam size at transmitter (W_0):                        {:.2e} m'.format(turbulenceStrengthModel.W_0))
+    # print('Beam size at receiver (diffractive):                   {:.2e} m'.format(turbulenceStrengthModel.W))
+    # print('Beam size at receiver (with turbulence):               {:.2e} m'.format(beamEffectsModel.W_eff))
+    # print('Coherence length (Fried parameter):                    {:.2e} m'.format(turbulenceStrengthModel.r_0))
+    # print('Beam wander r_c**2:                                           {} m'.format("None" if beamEffectsModel.r2_c is None else str('{:.2e}'.format(beamEffectsModel.r2_c))))
+    # print("Scintillation index (untracked if uplink):             {:.2e}".format( scintillationIndexModel.scintillation_index))
+    # if link_geometry == 'downlink':
+    #     print('------------------------------------------ Downlink only ---------------------------------------------')
+    #     print("Receiver aperture                                      {:.2e} m".format(scintillationIndexModel.D))
+    #     print('Scintillation index aperture averaged:                 {}'.format("None" if scintillationIndexModel.scintillation_index_averaged is None else str('{:.2e}'.format(scintillationIndexModel.scintillation_index_averaged))))
+    #
+    # else:
+    #     print('------------------------------------------ Uplink only ---------------------------------------------')
+    #     print('Scintillation index tracked                            {}'.format("None" if scintillationIndexModel.scintillation_index_tracked is None else str('{:.2e}'.format(scintillationIndexModel.scintillation_index_tracked))))
 
 
-
-    print('------------------------------------------ Results ------------------------------------------')
-    print('Link geometry:                                         {}'.format(turbulenceStrengthModel.geometry))
-    print("Gateway altitude:                                      {:.2e} m".format(turbulenceStrengthModel.ALT_altitude))
-    print("Satellite altitude:                                    {:.2e} m".format(turbulenceStrengthModel.SLT_altitude))
-    print('Slew rate:                                             {:.2e} m'.format(windModel.Ws))
-    print('Turbulence regime:                                     {}'.format(turbulenceStrengthModel.turbulence_strength))
-    print('Rytov variance   :                                     {:.2e}'.format(turbulenceStrengthModel.rytov_variance))
-    print('Beam size at transmitter (W_0):                        {:.2e} m'.format(turbulenceStrengthModel.W_0))
-    print('Beam size at receiver (diffractive):                   {:.2e} m'.format(turbulenceStrengthModel.W))
-    print('Beam size at receiver (with turbulence):               {:.2e} m'.format(beamEffectsModel.W_eff))
-    print('Coherence length (Fried parameter):                    {:.2e} m'.format(turbulenceStrengthModel.r_0))
-    print('Beam wander r_c**2:                                    {} m'.format("None" if beamEffectsModel.r2_c is None else str('{:.2e}'.format(beamEffectsModel.r2_c))))
-    print("Scintillation index (untracked if uplink):             {:.2e}".format(scintillationIndexModel.scintillation_index))
-    if link_geometry == 'downlink':
-        print('------------------------------------------ Downlink only ---------------------------------------------')
-        print("Receiver aperture                                      {:.2e} m".format(scintillationIndexModel.D))
-        print('Scintillation index aperture averaged:                 {}'.format("None" if scintillationIndexModel.scintillation_index_averaged is None else str('{:.2e}'.format(scintillationIndexModel.scintillation_index_averaged))))
-
-    else:
-        print('------------------------------------------ Uplink only ---------------------------------------------')
-        print('Scintillation index tracked                            {}'.format("None" if scintillationIndexModel.scintillation_index_tracked is None else str('{:.2e}'.format(scintillationIndexModel.scintillation_index_tracked))))
-
+    return windModel.height, windModel.rms_wind_speed, c2nModel.c2n, turbulenceStrengthModel.rytov_variance, scintillationIndexModel.scintillation_index
 
