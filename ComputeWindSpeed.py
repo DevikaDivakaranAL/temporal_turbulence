@@ -3,11 +3,12 @@ from scipy.integrate import quad
 import matplotlib.pyplot as plt
 
 class ComputeWindSpeed(object):
-    def __init__(self, Vg, Ws, height, geometry='uplink'):
+    def __init__(self, Vg, Ws, height, geometry, HVmodel):
         self.height = height
         self.Vg = Vg
         self.Ws = Ws
         self.geometry = geometry
+        self.HVmodel = HVmodel
         self.rms_wind_speed = self.compute_wind_speed()
 
     def Vb(self, height, Vg, Ws):
@@ -28,8 +29,14 @@ class ComputeWindSpeed(object):
 
     def compute_wind_speed(self):
         if self.geometry == 'uplink':
-            return self.compute_rms_wind_speed_uplink()
+            if self.HVmodel =='day':
+                return self.compute_rms_wind_speed_uplink_day()
+            else:
+                return self.compute_rms_wind_speed_uplink_night()
         elif self.geometry == 'downlink':
-            return self.compute_rms_wind_speed_downlink()
+            if self.HVmodel == 'day':
+                return self.compute_rms_wind_speed_downlink_day()
+            else:
+                return self.compute_rms_wind_speed_downlink_night()
         else:
             raise ValueError("Invalid geometry. Please choose 'uplink' or 'downlink'.")

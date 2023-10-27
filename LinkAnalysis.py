@@ -34,7 +34,7 @@ heights = []
 for heightloop in range(MinHeight, MaxHeight, 100):
     for elvloop in range(ElevationAngleMin, ElevationAngleMax, ElevationAngleMStep):
         height, rms_wind_speed, Cn2, RL, SI = main_fade_simulation(
-            'uplink', 'day', heightloop, 1.82e-05, 1.2, 1550, 1E-4, 1200, 0,
+            'downlink', 'day', heightloop, 1.82e-05, 1.2, 1550, 1E-4, 1200, 0,
             elvloop, 8, 0.1, hv_ground_cst=1.7e-14, altApertureDiameter=0.02,
             printResults=printing, C_r=0, integration_step_multiplier=0.1, nr_transmitters=1,
             compute_only_fades=False
