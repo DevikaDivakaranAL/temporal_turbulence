@@ -28,8 +28,8 @@ ElevationAngle = 15             # in degrees
 ElevationAngleMin = 15          # min elevation angle in degrees
 ElevationAngleMax = 35          # max elevation angle in degrees
 ElevationAngleMStep = 5         # step size in degrees
-
-
+MinHeight = 0
+MaxHeight = 30000
 if elvrange_case == 0:
     ElevationAngleMin = ElevationAngle
     ElevationAngleMax = ElevationAngleMin + ElevationAngleMStep
@@ -37,15 +37,15 @@ if elvrange_case == 0:
 elif elvrange_case == 1:
     ElevationAngleMax = ElevationAngleMax + ElevationAngleMStep
     printing = False
+for heightloop in range(MinHeight, MaxHeight, 100):
+    for elvloop in range(ElevationAngleMin, ElevationAngleMax, ElevationAngleMStep):
+         main_fade_simulation('uplink', 'day', heightloop,1.82e-05, 1.2, 1550,
+                                                                           1E-4,  1200, 0,
+                                                                           elvloop, 8, 0.1,
+                                                                           hv_ground_cst=1.7e-14,
+                                                                           altApertureDiameter=0.02,
+                                                                           printResults=printing, C_r=0,
+                                                                           integration_step_multiplier=0.1, nr_transmitters=1,
+                                                                           compute_only_fades=False)
 
-for elvloop in range(ElevationAngleMin, ElevationAngleMax, ElevationAngleMStep):
-     main_fade_simulation('downlink', 1.82e-05, 1.2, 1550,
-                                                                       1E-4,  1200000, 0,
-                                                                       elvloop, 8, 0.1,
-                                                                       hv_ground_cst=1.7e-14,
-                                                                       altApertureDiameter=0.3,
-                                                                       printResults=printing, C_r=0,
-                                                                       integration_step_multiplier=0.1, nr_transmitters=1,
-                                                                       compute_only_fades=False)
-
-    #print(elvloop, mean_fade_loss, fadeLevel_dB, surgeLevel_dB)
+        #print(elvloop, mean_fade_loss, fadeLevel_dB, surgeLevel_dB)

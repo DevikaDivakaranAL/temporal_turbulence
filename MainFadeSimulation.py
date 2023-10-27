@@ -9,11 +9,12 @@ from ComputeScintillationIndex import *
 import matplotlib.pyplot as plt
 
 
-def main_fade_simulation(link_geometry, divergence, M2, wavelength, fadeProb, sltAltitude, altAltitude,elevationAngle,ground_wind=8, slew_rate=0.1, hv_ground_cst= 1.7e-14, altApertureDiameter = 0.3, printResults = False, C_r = 0, integration_step_multiplier = 1, nr_transmitters = 1, compute_only_fades = True):
+def main_fade_simulation(link_geometry, C2n_model, heights, divergence, M2, wavelength, fadeProb, sltAltitude, altAltitude,elevationAngle,ground_wind=8, slew_rate=0.1, hv_ground_cst= 1.7e-14, altApertureDiameter = 0.3, printResults = False, C_r = 0, integration_step_multiplier = 1, nr_transmitters = 1, compute_only_fades = True):
     """Main function of the simulation. Creates object of each class involved in the simulation and calls their main method in order to compute all their attributes. It then return the values of interest.
     If requested by the user can print a table of the results.
     :param ground_wind: float,   wind speed at ground in m/s
     :param slew_rate: float, Slew rate in deg/s
+    :param C2n_model: float, day or night
     :param link_geometry: string,   can be 'uplink' or 'downlink'
     :param divergence: float, the beam divergence in rad
     :param M2: float, dmensionless parameter that quantifies the laser beam quality
@@ -38,8 +39,8 @@ def main_fade_simulation(link_geometry, divergence, M2, wavelength, fadeProb, sl
     F_0 = np.inf                                                    #Lasers are collimated beams, the phase front radius of curvature at the transmitter is always infinite
 
     # Initialize models
-    windModel = ComputeWindSpeed(geometry=link_geometry, Vg=ground_wind, Ws=slew_rate)
-    c2nModel = ComputeRefractiveIndexStructureParameter(windModel, c2n_model='day', hv_ground_cst=hv_ground_cst)
+    windModel = ComputeWindSpeed(geometry=link_geometry, height= heights, Vg=ground_wind, Ws=slew_rate)
+    c2nModel = ComputeRefractiveIndexStructureParameter(windModel, c2n_model=C2n_model, hv_ground_cst=hv_ground_cst)
 
     turbulenceStrengthModel = ComputeTurbulenceStrength(c2nModel, elevation=elevationAngle, geometry=link_geometry,
                                                         ALT_altitude=altAltitude, SLT_altitude=sltAltitude,
