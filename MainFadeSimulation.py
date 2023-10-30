@@ -39,7 +39,8 @@ def main_fade_simulation(link_geometry, HVmodel, heights, divergence, M2, wavele
     F_0 = np.inf                                                    #Lasers are collimated beams, the phase front radius of curvature at the transmitter is always infinite
 
     # Initialize models
-    windModel = ComputeWindSpeed(link_geometry, HVmodel, height= heights, Vg=ground_wind, Ws=slew_rate)
+    windModel = ComputeWindSpeed(Vg=ground_wind, Ws=slew_rate, height=heights, geometry=link_geometry)
+
     c2nModel = ComputeRefractiveIndexStructureParameter(windModel, HVmodel, hv_ground_cst=hv_ground_cst)
 
     turbulenceStrengthModel = ComputeTurbulenceStrength(c2nModel, elevation=elevationAngle, geometry=link_geometry,
@@ -64,7 +65,7 @@ def main_fade_simulation(link_geometry, HVmodel, heights, divergence, M2, wavele
     # print("Satellite altitude:                                    {:.2e} m".format(turbulenceStrengthModel.SLT_altitude))
     # print('Link length:                                           {:.2e} m'.format(turbulenceStrengthModel.R))
     # print('Wavelength:                                            {:.2e} m'.format(turbulenceStrengthModel.wavelength))
-    # print('Turbulence regime:                                     {}'.format(turbulenceStrengthModel.turbulence_strength))
+    print('Turbulence regime:                                     {}'.format(turbulenceStrengthModel.turbulence_strength))
     # print('Rytov variance   :                                     {:.2e}'.format(turbulenceStrengthModel.rytov_variance))
     # print('Beam size at transmitter (W_0):                        {:.2e} m'.format(turbulenceStrengthModel.W_0))
     # print('Beam size at receiver (diffractive):                   {:.2e} m'.format(turbulenceStrengthModel.W))
