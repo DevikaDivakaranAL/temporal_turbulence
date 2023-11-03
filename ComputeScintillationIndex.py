@@ -23,7 +23,7 @@ class ComputeScintillationIndex(object):
     r2_c = LinkedAttribute('beamEffectObject')
 
 
-    def __init__(self,  refractiveIndexObject,turbulenceStrengthObject,beamEffectObject, C_r = 1, D = 0):
+    def __init__(self,  refractiveIndexObject,turbulenceStrengthObject,beamEffectObject, C_r, D):
         # ACCESSED PARAMETERS
         self.refractiveIndexObject = refractiveIndexObject                                       # ComputeRefractiveIndexStructure instance
         self.c2n = refractiveIndexObject.c2n                                                     # function,  function of c2n (in m**(-2/3)) vs altitude, taken from ComputeRefractiveIndexStructure instance
