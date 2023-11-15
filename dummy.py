@@ -1,108 +1,49 @@
-# This is a sample Python script.
+# Defining the functions for calculating RI for day and night models
 
-import numpy as np
-import matplotlib.pyplot as plt
-from MainFadeSimulation import *
+def vb(height, Vg, Ws):
+    # Bufton wind model with slew rate
+    VB = Ws * height + Vg + 30 * np.exp(-((height - 9400) / 4800) ** 2)
+    return VB
 
-# Set whether to compute for a range of elevation angles
-elvrange_case = 0  # 0 for a single elevation angle, 1 for a range
+def compute_HV_daytime(h, Vb):
+    # Computes c2n with Hufnagel-Valley model for daytime
+    term1 = 0.00594 * (Vb / 27) ** 2 * (10 ** -5 * h) ** 10 * np.exp(-h / 1000)
+    term2 = 2.7 * 10 ** -16 * np.exp(-h / 1500)
+    term3 = 1.7e-13  * np.exp(-h / 100)
+    RI = term1 + term2 + term3
+    return RI
 
-# Elevation angle settings
-ElevationAngle = 15
-ElevationAngleMin = 15
-ElevationAngleMax = 35
-ElevationAngleMStep = 5
+def compute_HAP_nighttime(h, Vb, power_law_parameter=0.67, hg=500, h0=122):
+    # Computes c2n with HAP model for nighttime
+    term1 = 1 * (0.00594 * ((Vb / 27) ** 2) * (((h + hg) * 10 ** -5) ** 10) * np.exp(-(h + hg) / 1000))
+    term2 = 2.7e-16 * np.exp(-(h + hg) / 1500)
+    term3 = 1.7e-14 * ( h0 / h) ** power_law_parameter
+    RI = term1 + term2 + term3
+    return RI
 
-# Adjust settings based on elvrange_case
-if elvrange_case == 0:
-    ElevationAngleMin = ElevationAngle
-    ElevationAngleMax = ElevationAngle + ElevationAngleMStep
-    printing = True
-else:
-    ElevationAngleMax = ElevationAngleMax + ElevationAngleMStep
-    printing = False
-
-# Initialize lists to store results
-RMS_wind_speeds = []
-heights = []
-Scintillation_index = []
-Rytov_variance = []
-
-# Height range for wind speed calcu
-MinHeight = 0
+# Height parameters
+MinHeight = 1
 MaxHeight = 30000
-geometry ='uplink'
-if geometry == "uplink":
-    # Main loop
-    for heightloop in range(MinHeight, MaxHeight + 1, 1000):
-        for elvloop in range(ElevationAngleMin, ElevationAngleMax, ElevationAngleMStep):
-            height, rms_wind_speed, Cn2, RL, SI = main_fade_simulation(
-                geometry, 'day', heightloop, 1.82e-05, 1.2, 1550, 1E-4, 1200, 0,
-                elvloop, 8, 0.1, hv_ground_cst=1.7e-14, altApertureDiameter=0.02,
-                printResults=printing, C_r=0, integration_step_multiplier=0.1, nr_transmitters=1,
-                compute_only_fades=False
-            )
-            RMS_wind_speeds.append(rms_wind_speed)
-            heights.append(height)
-            Scintillation_index.append(SI)
-            Rytov_variance.append(RL)
+stepHeight = 500
+heights = np.arange(MinHeight, MaxHeight, stepHeight)  # Heights from 1 to 30000 meters
 
-            print('Height:', height)
-            print('RMS Wind Speed:', rms_wind_speed)
-            print('Rytov Variance:', RL)
-            print('Scintillation Index:', SI)
-            print('Cn2:', Cn2)
+# Wind model parameters
+Vg = 5  # Ground speed in m/s
+slew_rate = 0.3  # Slew rate in degrees/s
 
-else:
-    for heightloop in range(MaxHeight, MinHeight - 1, -1000):
-        for elvloop in range(ElevationAngleMin, ElevationAngleMax, ElevationAngleMStep):
-            height, rms_wind_speed, Cn2, RL, SI = main_fade_simulation(
-                geometry, 'night', heightloop, 1.82e-05, 1.2, 1550, 1E-4, 1200, 0,
-                elvloop, 8, 0.1, hv_ground_cst=1.7e-14, altApertureDiameter=0.02,
-                printResults=printing, C_r=0, integration_step_multiplier=0.1, nr_transmitters=1,
-                compute_only_fades=False
-            )
-            RMS_wind_speeds.append(rms_wind_speed)
-            heights.append(height)
-            Scintillation_index.append(SI)
-            Rytov_variance.append(RL)
+# Calculating RI values for daytime and nighttime models
+RI_values_day = [compute_HV_daytime(h, vb(h, Vg, slew_rate)) for h in heights]
+RI_values_night = [compute_HAP_nighttime(h, vb(h, Vg, slew_rate)) for h in heights]
 
-            print('Height:', height)
-            print('RMS Wind Speed:', rms_wind_speed)
-            print('Rytov Variance:', RL)
-            print('Scintillation Index:', SI)
-            print('Cn2:', Cn2)
-# Plotting results
-# plt.figure(figsize=(10, 5))
-# plt.plot(heights, Scintillation_index, color='b')
-# plt.title('RMS Wind Speed vs Height')
-# plt.xlabel('Height (m)')
-# plt.ylabel('RMS Wind Speed (m/s)')
-# plt.grid(True)
-# plt.show()
-#Create subplots
-fig, axs = plt.subplots(3, 1, figsize=(10, 15))
-link_geometry = geometry
-HVmodel = 'night'
-# Plot RMS Wind Speed
-axs[0].plot(heights, RMS_wind_speeds, color='b')
-axs[0].set_title(f' ({link_geometry}, {HVmodel})')
-axs[0].set_xlabel('Height (m)')
-axs[0].set_ylabel('RMS Wind Speed (m/s)')
-axs[0].grid(True)
-
-# Plot Rytov Variance (RL)
-axs[1].plot(heights, Rytov_variance, color='g')
-axs[1].set_xlabel('Height (m)')
-axs[1].set_ylabel('Rytov Variance')
-axs[1].grid(True)
-
-# Plot Scintillation Index (SI)
-axs[2].plot(heights, Scintillation_index, color='r')
-axs[2].set_xlabel('Height (m)')
-axs[2].set_ylabel('Scintillation Index')
-axs[2].grid(True)
-
-# Adjust layout
-plt.tight_layout()
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.semilogx(RI_values_day, heights, label='Day Model')
+plt.semilogy(RI_values_day, heights)
+plt.semilogx(RI_values_night, heights, label='Night Model')
+plt.semilogy(RI_values_night, heights)
+plt.xlabel(r'$C_n^2 \ (m^{-2/3})$ - Log Scale')
+plt.ylabel('Height (m) - Log Scale')
+plt.title('Cn2 vs Height for Day and Night Models')
+plt.legend()
+plt.grid(True)
 plt.show()

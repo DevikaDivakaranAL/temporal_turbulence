@@ -1,3 +1,4 @@
+import mpmath
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import j1
@@ -8,6 +9,7 @@ class ComputeIntensityTimeSeries:
     c2n_value = LinkedAttribute('refractiveIndexObject')
     scintillation_index_tracked = LinkedAttribute('scintillationIndexObject')
     rms_wind_speed = LinkedAttribute('windSpeedObject')
+    Slew = LinkedAttribute('windSpeedObject')
     wavelength = LinkedAttribute('turbulenceStrengthObject')
     def __init__(self,refractiveIndexObject, scintillationIndexObject, windSpeedObject, turbulenceStrengthObject,
                  lower_limit,upper_limit, Transmission_losses, aperture_diameter):
@@ -20,6 +22,8 @@ class ComputeIntensityTimeSeries:
         self.V = windSpeedObject.rms_wind_speed
         self.turbulenceStrengthObject = turbulenceStrengthObject  # ComputeRefractiveIndexStructure instance
         self.wavelength = turbulenceStrengthObject.wavelength
+        self.slew = windSpeedObject.slew
+
         #input parameters
         self.l0 = lower_limit
         self.L0 = upper_limit
@@ -56,13 +60,25 @@ class ComputeIntensityTimeSeries:
         integral, _ = quad(lambda k: (integrand(k)), 0, np.inf)
         We_f = (self.Tr / self.V) * integral
         return We_f
+
+    def Pw(self, f):
+        """Calculate the normalized power spectrum PW(f)."""
+        # calculate We^2(f)
+        We_f_squared = self.We(f)
+        We_f_squared = We_f_squared ** 2
+
+        # compute the integral of We(x) from 0 to infinity
+        #integral, _ = quad(lambda x: self.We(x), 0, np.inf)
+        PW_f = f * We_f_squared/((0.033 * self.c2n_value * self.D**2 * self.Tr**2)/4*self.V**2)
+        # calculate PW(f)
+       # PW_f = f * We_f_squared / integral if integral != 0  else 0
+        return PW_f
+
     def plot_normalized_intensity(self):
-        if self.RescaledIntensity is None or self.time_values is None:
-            print("Please run the 'calculate_normalized_intensity' method first.")
-            return
+
         plt.figure(figsize=(10, 5))
         plt.plot(self.time_values, np.abs(self.RescaledIntensity))
-        plt.title(f'Normalized Intensity vs Time [rms wind speed : {self.V}, Aperture Diameter: {self.D}]')
+        plt.title(f'Normalized Intensity vs Time [slew rate : {self.slew}]')
         plt.xlabel('Time (s)')
         plt.ylabel('Normalized Intensity')
         plt.grid(True)
@@ -87,6 +103,14 @@ class ComputeIntensityTimeSeries:
         self.time_values = np.linspace(0, num_time_points * time_spacing, num_time_points, endpoint=False)
         self.plot_normalized_intensity()
 
+        # self.PW_values = np.array([self.Pw(f) for f in self.frequencies])
+        # plt.figure(figsize=(10, 5))
+        # plt.semilogx(self.frequencies, self.PW_values)  # Using semilogx for logarithmic scale on x-axis
+        # plt.xlabel('Frequency (Hz)')
+        # plt.ylabel('Normalized Power Spectrum')
+        # plt.title(f'Normalized Power Spectrum vs Frequency [Wind speed: {self.rms_wind_speed}Slew: {self.slew}]')
+        # plt.grid(True)
+        # plt.show()
 
 
 
