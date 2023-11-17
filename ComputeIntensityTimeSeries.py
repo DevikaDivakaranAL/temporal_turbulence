@@ -15,7 +15,7 @@ class ComputeIntensityTimeSeries:
                  lower_limit,upper_limit, Transmission_losses, aperture_diameter):
         #accessed parameters
         self.refractiveIndexObject = refractiveIndexObject  # ComputeRefractiveIndexStructure instance
-        self.c2n_value = refractiveIndexObject.c2n_value
+        self.c2n_value = refractiveIndexObject.c2n_value #2.68e-12
         self.scintillationIndexObject = scintillationIndexObject  # ComputeScintillationIndex instance
         self.scintillation_index = scintillationIndexObject.scintillation_index
         self.windSpeedObject = windSpeedObject  # ComputeRefractiveIndexStructure instance
@@ -97,7 +97,7 @@ class ComputeIntensityTimeSeries:
 
         e_t = ifft(We_prime_f)                                                       #the time-varying electrical signal
 
-        self.RescaledIntensity = e_t / np.mean(e_t)* 1/self.scintillation_index
+        self.RescaledIntensity = (e_t / np.max(e_t))* 1/self.scintillation_index
         time_spacing = 1 / (self.frequencies[-1] - self.frequencies[0])
         num_time_points = len(self.frequencies)
         self.time_values = np.linspace(0, num_time_points * time_spacing, num_time_points, endpoint=False)

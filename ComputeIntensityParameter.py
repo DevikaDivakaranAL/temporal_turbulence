@@ -33,6 +33,7 @@ class ComputeIntensityParameters(object):
         self.pdf_averaged = pdfObject.pdf_averaged          # function,  probability density as a function of intensity using averaged scintillation index, taken from ComputeProbabilityDensityFunction instance
         self.pdf_tracked = pdfObject.pdf_tracked            # function,  probability density as a function of intensity using tracked scintillation index, taken from ComputeProbabilityDensityFunction instance
 
+
         # INPUT PARAMETERS
         self.probability = probability                      # probability of interest. We want to know the fade level associated to this probability
         self.integration_step_multiplier = integration_step_multiplier # factor that multiplies the integration step. Can be increased to make computation faster (or decreased for more precision), by default = 1.
@@ -62,7 +63,8 @@ class ComputeIntensityParameters(object):
 
 
     def converge_to_fade_intensity_of_interest(self, pdf):
-        """Given a pdf it computes the intensity I_T for which the cumulative distribution function is the closest to the probability of interest"""
+        """calculates the intensity level (I_T_fade) where the cumulative distribution function (CDF) of a given probability density function (pdf) is closest to a specified probability of interest."""
+
         di = self.mean_intensity * self.probability / 10 *self.elevation *self.integration_step_multiplier #choose an integration step proportional to the elevation and the probability of interest
         I_T_fade = 0
         p = 0
@@ -70,7 +72,8 @@ class ComputeIntensityParameters(object):
 
         while p <= self.probability:  # iterate until the integral of pdf is close to the probability of interest
             I_T_fade += di
-            p += (pdf(I_T_fade + di) + pdf(I_T_fade)) /2* di  # integrate using Trapezoidal rule
+            p += (pdf(I_T_fade + di) + pdf(I_T_fade)) /2* di  # uses a numerical integration approach (Trapezoidal rule)
+            # to integrate the pdf and find the corresponding intensity level.
 
         return I_T_fade, p
 
@@ -207,10 +210,10 @@ class ComputeIntensityParameters(object):
             self.fade_probability_multiple = multiple_fade_proba
             self.S_T_multiple = surge_multiple
             self.surge_probability_multiple = multiple_surge_proba
-            mp.mp.dps=50
+            mp.mp.dps = 50
 
-        proba_calculated_mpmath =   mp.quad(self.pdf, [0, I_T_fade])
-        rel_probability_error =   abs((proba_calculated_mpmath - fade_proba)/proba_calculated_mpmath)
+        proba_calculated_mpmath = mp.quad(self.pdf, [0, I_T_fade])
+        #rel_probability_error = abs((proba_calculated_mpmath - fade_proba)/proba_calculated_mpmath)
         # print('proof: p', mp.quad(self.pdf, [0, I_T_fade]))
         # print('relative error', rel_probability_error)
         # print('proof: p_surge', mp.quad(self.pdf, [0, I_T_surge]))

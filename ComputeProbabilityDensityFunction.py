@@ -21,8 +21,8 @@ class ComputeProbabilityDensityFunction(object):
     scintillation_index_averaged = LinkedAttribute('scintillationIndexObject')
     alpha_pe = LinkedAttribute('scintillationIndexObject')
     scintillation_index_tracked =  LinkedAttribute('scintillationIndexObject')
-
-    def __init__(self, turbulenceStrengthObject,beamEffectObject,scintillationIndexObject):
+    RescaledIntensity = LinkedAttribute('timeSeriesObject')
+    def __init__(self, turbulenceStrengthObject,beamEffectObject,scintillationIndexObject, timeSeriesObject):
         # ACCESSED PARAMETERS
         self.turbulenceStrengthObject = turbulenceStrengthObject                                # ComputeTurbulenceStrength instance
         self.geometry = turbulenceStrengthObject.geometry                                       # string,    link geometry, taken from ComputeTurbulenceStrength instance
@@ -45,6 +45,8 @@ class ComputeProbabilityDensityFunction(object):
         self.alpha_pe = scintillationIndexObject.alpha_pe                                       # float,     beam wander induced pointing error normalized by the distance, taken from computeScintillationIndex instance
         self.scintillation_index_tracked = scintillationIndexObject.scintillation_index_tracked # float,     scintillation index without beam wander (computed in uplink case), taken from computeScintillationIndex instance
 
+        self.timeSeriesObject = timeSeriesObject
+        self.RescaledIntensity = timeSeriesObject.RescaledIntensity
         # COMPUTED PARAMETERS
         self.mean_intensity = None                                                              # mean intensity at the center of the receiver aperture when turbulence is considered
         self.pdf = None                                                                         # function,  probability density as a function of intensity

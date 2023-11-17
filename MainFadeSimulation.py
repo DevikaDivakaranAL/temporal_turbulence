@@ -10,16 +10,21 @@ from ComputeTimeParameter import *
 import matplotlib.pyplot as plt
 
 
-def main_fade_simulation(link_geometry, daynightmodel, height, divergence, M2, wavelength, fadeProb, sltAltitude, altAltitude, elevationAngle, ground_wind=8, slew_rate=0.1, hv_ground_cst= 1.7e-14, lower_limit = 0.004, upper_limit = 1.6, transmission_losses = -2, altApertureDiameter = 0.3, printResults = False, C_r = 0, integration_step_multiplier = 1, nr_transmitters = 1, compute_only_fades = True):
+def main_fade_simulation(link_geometry, daynightmodel, wind_height_min, wind_height_max, sunset, sunrise, time, divergence, M2, wavelength, fadeProb, sltAltitude, altAltitude, elevationAngle, ground_wind=8, slew_rate=0.1, hv_ground_cst= 1.7e-14, lower_limit = 0.004, upper_limit = 1.6, transmission_losses = -2, altApertureDiameter = 0.3, printResults = False, C_r = 0, integration_step_multiplier = 1, nr_transmitters = 1, compute_only_fades = True):
     """Main function of the simulation. Creates object of each class involved in the simulation and calls their main method in order to compute all their attributes. It then return the values of interest.
     If requested by the user can print a table of the results.
     :param ground_wind: float,   wind speed at ground in m/s
     :param slew_rate: float, Slew rate in deg/s
     :param daynightmodel: float, day or night
+    :param sunset: sunset time: hr.min format
+    :param sunrise: sunrise time: hr.min format
+    :param time:  time at which hap model is used in night time
     :param link_geometry: string,   can be 'uplink' or 'downlink'
     :param divergence: float, the beam divergence in rad
     :param M2: float, dimensionless parameter that quantifies the laser beam quality
     :param wavelength: float, beam wavelength in m
+    :param wind_height_min: minimum height at which wind speed is calculated , in m
+    :param wind_height_max: maximum height at which wind speed is calculated , in m
     :param fadeProb: float, fade statistics probability of interest.
     :param sltAltitude: float, SLT altitude in m
     :param altAltitude: float, ALT altitude in m
@@ -43,9 +48,9 @@ def main_fade_simulation(link_geometry, daynightmodel, height, divergence, M2, w
     F_0 = np.inf                                                    #Lasers are collimated beams, the phase front radius of curvature at the transmitter is always infinite
 
     # Initialize models
-    windModel = ComputeWindSpeed(Vg=ground_wind, slew=slew_rate, height=height, geometry=link_geometry)
-    windModel.compute_wind_speed()
-    c2nModel = ComputeRefractiveIndexStructureParameter(windModel, daynightmodel, height=height, hv_ground_cst=hv_ground_cst)
+    windModel = ComputeWindSpeed(Vg=ground_wind, slew=slew_rate, wind_height_min=wind_height_min, wind_height_max=wind_height_max, geometry=link_geometry)
+    #windModel.compute_wind_speed()
+    c2nModel = ComputeRefractiveIndexStructureParameter(windModel, daynightmodel, wind_height_max=wind_height_max, sunset=sunset, sunrise=sunrise, time=time, hv_ground_cst=hv_ground_cst)
     c2nModel.compute_c2n_fct()
     turbulenceStrengthModel = ComputeTurbulenceStrength(c2nModel, elevation=elevationAngle, geometry=link_geometry,
                                                         ALT_altitude=altAltitude, SLT_altitude=sltAltitude,
@@ -61,7 +66,7 @@ def main_fade_simulation(link_geometry, daynightmodel, height, divergence, M2, w
                                                           transmission_losses, altApertureDiameter)
     intensityTimeSeriesModel.compute_intensity_time_series()
     pdfModel = ComputeProbabilityDensityFunction(turbulenceStrengthModel, beamEffectsModel,
-                                                 scintillationIndexModel)  # Instantiate a ComputeProbabilityDensityFunction object
+                                                 scintillationIndexModel, intensityTimeSeriesModel)  # Instantiate a ComputeProbabilityDensityFunction object
     pdfModel.compute_pdf()  # Compute all pdfModel object attributes
 
     intensityParametersModel = ComputeIntensityParameters(turbulenceStrengthModel, scintillationIndexModel, pdfModel,

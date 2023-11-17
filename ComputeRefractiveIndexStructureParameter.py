@@ -5,15 +5,18 @@ import matplotlib.pyplot as plt
 from LinkedAttribute import *
 class ComputeRefractiveIndexStructureParameter(object):
     rms_wind_speed = LinkedAttribute('windSpeedObject')  # Modify this line to access the rms_wind_speed attribute
-    def __init__(self, windSpeedObject, daynight_model, height, hv_ground_cst=1.7e-14):
+    def __init__(self, windSpeedObject, daynight_model, wind_height_max, sunset, sunrise, time, hv_ground_cst=1.7e-14):
         self.windSpeedObject = windSpeedObject
         self.daynight_model = daynight_model
         self.hv_ground_cst = hv_ground_cst
         self.h0 = 122
         self.hg = 500
         self.c2n = None
-        self.height = height
+        self.wind_height_max = wind_height_max
         self.wind_speed = windSpeedObject.rms_wind_speed
+        self.sunset = sunset
+        self.sunrise = sunrise
+        self.time = time
 
     def compute_HV_daytime(self, h):
         # daytime
@@ -36,9 +39,9 @@ class ComputeRefractiveIndexStructureParameter(object):
             p = np.nan  # If TH is out of bounds, return NaN
         return p
 
-    def compute_HAP_nighttime(self, h, sunset=18.00, sunrise=6.00, time=4.00):
-        TP = (sunrise - sunset) / 12
-        TH = (time - sunrise) / TP
+    def compute_HAP_nighttime(self, h, sunset, sunrise, time):
+        TP = (self.sunrise - self.sunset) / 12
+        TH = (self.time - self.sunrise) / TP
         power_law_parameter = self.calculate_power_law_parameter(TH)
         RI = (1 * (0.00594 * ((self.wind_speed / 27) ** 2) * (((h + self.hg) * 10 ** -5) ** 10) * mp.exp(-(h + self.hg) / 1000))
               + 2.7e-16 * mp.exp(-(h + self.hg) / 1500)
@@ -49,10 +52,10 @@ class ComputeRefractiveIndexStructureParameter(object):
     def compute_c2n_fct(self):
         if self.daynight_model == 'day':
             self.c2n = self.compute_HV_daytime
-            self.c2n_value = float(self.compute_HV_daytime(self.height))
+            self.c2n_value = float(self.compute_HV_daytime(self.wind_height_max))
         elif self.daynight_model == 'night':
             self.c2n = self.compute_HAP_nighttime
-            self.c2n_value = float(self.compute_HAP_nighttime(self.height))
+            self.c2n_value = float(self.compute_HAP_nighttime(self.wind_height_max,self.sunset, self.sunrise, self.time))
             print(self.c2n_value)
         else:
             raise ValueError("Invalid c2n_model. Please choose 'day' or 'night'.")
