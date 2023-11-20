@@ -5,38 +5,49 @@ from scipy.special import j1
 from scipy.integrate import quad
 from scipy.fft import ifft
 from LinkedAttribute import *
+
 class ComputeIntensityTimeSeries:
+    # Linked attributes from other objects
     c2n_value = LinkedAttribute('refractiveIndexObject')
     scintillation_index_tracked = LinkedAttribute('scintillationIndexObject')
     rms_wind_speed = LinkedAttribute('windSpeedObject')
-    Slew = LinkedAttribute('windSpeedObject')
-    wavelength = LinkedAttribute('turbulenceStrengthObject')
-    def __init__(self,refractiveIndexObject, scintillationIndexObject, windSpeedObject, turbulenceStrengthObject,
-                 lower_limit,upper_limit, Transmission_losses, aperture_diameter):
-        #accessed parameters
-        self.refractiveIndexObject = refractiveIndexObject  # ComputeRefractiveIndexStructure instance
-        self.c2n_value = refractiveIndexObject.c2n_value #2.68e-12
-        self.scintillationIndexObject = scintillationIndexObject  # ComputeScintillationIndex instance
-        self.scintillation_index = scintillationIndexObject.scintillation_index
-        self.windSpeedObject = windSpeedObject  # ComputeRefractiveIndexStructure instance
-        self.V = windSpeedObject.rms_wind_speed
-        self.turbulenceStrengthObject = turbulenceStrengthObject  # ComputeRefractiveIndexStructure instance
-        self.wavelength = turbulenceStrengthObject.wavelength
-        self.slew = windSpeedObject.slew
+    slew = LinkedAttribute('windSpeedObject')
 
-        #input parameters
+    def __init__(self, refractiveIndexObject, scintillationIndexObject, windSpeedObject, turbulenceStrengthObject,
+                 lower_limit, upper_limit, Transmission_losses, aperture_diameter, elevation):
+        """
+        Initializes the ComputeIntensityTimeSeries class.
+
+        Parameters:
+        - refractiveIndexObject: Instance of ComputeRefractiveIndexStructure.
+        - scintillationIndexObject: Instance of ComputeScintillationIndex.
+        - windSpeedObject: Instance of ComputeWindSpeed.
+        - turbulenceStrengthObject: Instance of ComputeTurbulenceStrength.
+        - lower_limit (float): Lower frequency limit.
+        - upper_limit (float): Upper frequency limit.
+        - Transmission_losses (float): Transmission losses.
+        - aperture_diameter (float): Diameter of the aperture.
+        """
+        # Initialize linked attributes
+        self.refractiveIndexObject = refractiveIndexObject
+        self.c2n_value = refractiveIndexObject.c2n_value
+        self.scintillationIndexObject = scintillationIndexObject
+        self.scintillation_index = scintillationIndexObject.scintillation_index
+        self.windSpeedObject = windSpeedObject
+        self.V = windSpeedObject.rms_wind_speed
+        self.turbulenceStrengthObject = turbulenceStrengthObject
+        self.wavelength = turbulenceStrengthObject.wavelength
+        self.elevation = elevation
+
+        # Input parameters
         self.l0 = lower_limit
         self.L0 = upper_limit
         self.Tr = Transmission_losses
         self.D = aperture_diameter
-        #computed parameters
-        self.We_f_values = None
-        self.RescaledIntensity = None
-        self.time_values = None
 
+        # Computed parameters
         self.k_m = 5.92 / self.l0
         self.k_0 = 2 * np.pi / self.L0
-       # self.frequency = 2.99e8 / self.wavelength
         self.frequencies = np.linspace(1, 10e4, 100000)
     def Ws(self, k):
         """power spectral component described by the von Kármán spectrum"""
@@ -78,7 +89,7 @@ class ComputeIntensityTimeSeries:
 
         plt.figure(figsize=(10, 5))
         plt.plot(self.time_values, np.abs(self.RescaledIntensity))
-        plt.title(f'Normalized Intensity vs Time [slew rate : {self.slew}]')
+        plt.title(f'Normalized Intensity vs Time [for {self.elevation} elevation]')
         plt.xlabel('Time (s)')
         plt.ylabel('Normalized Intensity')
         plt.grid(True)

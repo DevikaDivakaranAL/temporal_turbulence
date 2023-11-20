@@ -10,7 +10,7 @@ from ComputeTimeParameter import *
 import matplotlib.pyplot as plt
 
 
-def main_fade_simulation(link_geometry, daynightmodel, wind_height_min, wind_height_max, sunset, sunrise, time, divergence, M2, wavelength, fadeProb, sltAltitude, altAltitude, elevationAngle, ground_wind=8, slew_rate=0.1, hv_ground_cst= 1.7e-14, lower_limit = 0.004, upper_limit = 1.6, transmission_losses = -2, altApertureDiameter = 0.3, printResults = False, C_r = 0, integration_step_multiplier = 1, nr_transmitters = 1, compute_only_fades = True):
+def main_fade_simulation(link_geometry, daynightmodel, wind_height_min, wind_height_max, sunset, sunrise, time, divergence, M2, wavelength, fadeProb, sltAltitude, altAltitude, elevationAngle, ground_wind=8, hv_ground_cst= 1.7e-14, lower_limit = 0.004, upper_limit = 1.6, transmission_losses = -2, altApertureDiameter = 0.3, printResults = False, C_r = 0, integration_step_multiplier = 1, nr_transmitters = 1, compute_only_fades = True):
     """Main function of the simulation. Creates object of each class involved in the simulation and calls their main method in order to compute all their attributes. It then return the values of interest.
     If requested by the user can print a table of the results.
     :param ground_wind: float,   wind speed at ground in m/s
@@ -48,7 +48,7 @@ def main_fade_simulation(link_geometry, daynightmodel, wind_height_min, wind_hei
     F_0 = np.inf                                                    #Lasers are collimated beams, the phase front radius of curvature at the transmitter is always infinite
 
     # Initialize models
-    windModel = ComputeWindSpeed(Vg=ground_wind, slew=slew_rate, wind_height_min=wind_height_min, wind_height_max=wind_height_max, geometry=link_geometry)
+    windModel = ComputeWindSpeed(Vg=ground_wind, wind_height_min=wind_height_min, wind_height_max=wind_height_max, elevation=elevationAngle, SLT_altitude=sltAltitude, geometry=link_geometry)
     #windModel.compute_wind_speed()
     c2nModel = ComputeRefractiveIndexStructureParameter(windModel, daynightmodel, wind_height_max=wind_height_max, sunset=sunset, sunrise=sunrise, time=time, hv_ground_cst=hv_ground_cst)
     c2nModel.compute_c2n_fct()
@@ -63,7 +63,7 @@ def main_fade_simulation(link_geometry, daynightmodel, wind_height_min, wind_hei
     scintillationIndexModel.compute_scintillation_index()
     intensityTimeSeriesModel = ComputeIntensityTimeSeries(c2nModel, scintillationIndexModel, windModel,
                                                           turbulenceStrengthModel, lower_limit, upper_limit,
-                                                          transmission_losses, altApertureDiameter)
+                                                          transmission_losses, altApertureDiameter, elevation=elevationAngle)
     intensityTimeSeriesModel.compute_intensity_time_series()
     pdfModel = ComputeProbabilityDensityFunction(turbulenceStrengthModel, beamEffectsModel,
                                                  scintillationIndexModel, intensityTimeSeriesModel)  # Instantiate a ComputeProbabilityDensityFunction object
@@ -245,7 +245,7 @@ def main_fade_simulation(link_geometry, daynightmodel, wind_height_min, wind_hei
         scintillation_loss = intensityParametersModel.F_T_multiple
         scintillation_surge = intensityParametersModel.S_T_multiple
 
-    return pdfModel.mean_change_loss, scintillation_loss, scintillation_surge, turbulenceStrengthModel.elevation, windModel.rms_wind_speed, c2nModel.c2n_value, turbulenceStrengthModel.rytov_variance, scintillationIndexModel.scintillation_index
+    return windModel.slew, pdfModel.mean_change_loss, scintillation_loss, scintillation_surge, turbulenceStrengthModel.elevation, windModel.rms_wind_speed, c2nModel.c2n_value, turbulenceStrengthModel.rytov_variance, scintillationIndexModel.scintillation_index
 
 
 

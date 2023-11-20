@@ -117,4 +117,3 @@ class ComputeTurbulenceStrength(object):
             raise Exception("Please enter: 'uplink' or 'downlink' as geometry parameter")
 
 
-

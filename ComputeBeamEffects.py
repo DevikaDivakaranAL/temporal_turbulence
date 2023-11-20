@@ -3,22 +3,31 @@ from LinkedAttribute import *
 
 
 class ComputeBeamEffects(object):
-    """Definition of the attributes that need to be taken from another instance so that they are automatically updated if the instance has them changed.
-    For more info read comments in LinkedAttribute class"""
-    c2n= LinkedAttribute('refractiveIndexObject')
+    """
+    Computes the beam effects including effective beam radius and beam wander due to atmospheric turbulence.
+    Utilizes linked attributes from refractive index and turbulence strength objects.
+    """
+    c2n = LinkedAttribute('refractiveIndexObject')
     geometry = LinkedAttribute('turbulenceStrengthObject')
-    ALT_altitude= LinkedAttribute('turbulenceStrengthObject')
-    SLT_altitude= LinkedAttribute('turbulenceStrengthObject')
-    zenith_angle_rad= LinkedAttribute('turbulenceStrengthObject')
-    wavelength= LinkedAttribute('turbulenceStrengthObject')
-    W_0= LinkedAttribute('turbulenceStrengthObject')
-    W= LinkedAttribute('turbulenceStrengthObject')
-    r_0= LinkedAttribute('turbulenceStrengthObject')
-    cap_lambda= LinkedAttribute('turbulenceStrengthObject')
-    k= LinkedAttribute('turbulenceStrengthObject')
+    ALT_altitude = LinkedAttribute('turbulenceStrengthObject')
+    SLT_altitude = LinkedAttribute('turbulenceStrengthObject')
+    zenith_angle_rad = LinkedAttribute('turbulenceStrengthObject')
+    wavelength = LinkedAttribute('turbulenceStrengthObject')
+    W_0 = LinkedAttribute('turbulenceStrengthObject')
+    W = LinkedAttribute('turbulenceStrengthObject')
+    r_0 = LinkedAttribute('turbulenceStrengthObject')
+    cap_lambda = LinkedAttribute('turbulenceStrengthObject')
+    k = LinkedAttribute('turbulenceStrengthObject')
     turbulence_strength = LinkedAttribute('turbulenceStrengthObject')
 
     def __init__(self, refractiveIndexObject,turbulenceStrengthObject):
+        """
+               Initializes the ComputeBeamEffects class.
+
+               Parameters:
+               - refractiveIndexObject: Instance of ComputeRefractiveIndexStructure.
+               - turbulenceStrengthObject: Instance of ComputeTurbulenceStrength.
+               """
         # ACCESSED PARAMETERS
         self.refractiveIndexObject = refractiveIndexObject                  # ComputeRefractiveIndexStructure instance
         self.c2n = refractiveIndexObject.c2n                                # function,  function of c2n (in m**(-2/3)) vs altitude of height, taken from ComputeRefractiveIndexStructure instance
@@ -57,10 +66,13 @@ class ComputeBeamEffects(object):
         self.W_eff = float(self.W*(1+ (D_0/self.r_0)**(5/3))**(3/5))
 
     def compute_beam_effects(self):
-        """" Determines if the values can be computed and assigns them to the correct attributes"""
+        """
+        Determines the beam effects based on the communication geometry and turbulence strength.
+        Assigns computed values to the appropriate attributes.
+        """
         if self.geometry == 'uplink':
             self.compute_W_eff()
             if self.turbulence_strength == 'weak':
                 self.compute_r2_c()
         else:
-            self.W_eff = self.W
+            self.W_eff = self.W # For downlink, the effective beam radius is the same as the diffractive beam radius
