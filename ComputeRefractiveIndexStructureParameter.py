@@ -66,7 +66,7 @@ class ComputeRefractiveIndexStructureParameter(object):
             p = np.nan  # Return NaN if TH is out of bounds
         return p
 
-    def compute_HAP_nighttime(self, h, sunset, sunrise, time):
+    def compute_HAP_nighttime(self, h):
         """
         Computes the refractive index structure parameter (Cn²) using the Hufnagel-Andrews-Philips model for nighttime.
 
@@ -77,8 +77,8 @@ class ComputeRefractiveIndexStructureParameter(object):
         Returns:
         - RI (float): Refractive index structure parameter at height h.
         """
-        TP = (sunrise - sunset) / 12  # Normalizing night length to 12 hours
-        TH = (time - sunrise) / TP   # Time after sunrise normalized to TP
+        TP = (self.sunrise - self.sunset) / 12  # Normalizing night length to 12 hours
+        TH = (self.time - self.sunrise) / TP   # Time after sunrise normalized to TP
         power_law_parameter = self.calculate_power_law_parameter(TH)
         RI = (1 * (0.00594 * ((self.wind_speed / 27) ** 2) * (((h + self.hg) * 10 ** -5) ** 10) * mp.exp(-(h + self.hg) / 1000))
               + 2.7e-16 * mp.exp(-(h + self.hg) / 1500)
@@ -98,7 +98,6 @@ class ComputeRefractiveIndexStructureParameter(object):
             self.c2n_value = float(self.compute_HV_daytime(self.wind_height_max))
         elif self.daynight_model == 'night':
             self.c2n = self.compute_HAP_nighttime
-            self.c2n_value = float(self.compute_HAP_nighttime(self.wind_height_max, self.sunset, self.sunrise, self.time))
-            print(self.c2n_value)
+            self.c2n_value = float(self.compute_HAP_nighttime(self.wind_height_max))
         else:
             raise ValueError("Invalid day/night model. Please choose 'day' or 'night'.")

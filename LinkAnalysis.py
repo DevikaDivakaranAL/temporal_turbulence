@@ -26,7 +26,7 @@ else:
 geometry = 'uplink'  # Choose between 'uplink' and 'downlink'
 for elvloop in range(ElevationAngleMin, ElevationAngleMax, ElevationAngleStep):
     # Run the main fade simulation with the specified parameters
-    mean_fade_loss, fadeLevel_dB, surgeLevel_dB, elevation, rms_wind_speed, Cn2, RL, SI = main_fade_simulation(
+    slew, mean_fade_loss, fadeLevel_dB, surgeLevel_dB, elevation, rms_wind_speed, Cn2, RL, SI = main_fade_simulation(
                                                                                                 geometry, 'day', 1, 30000, 18.00, 6.00, 4.00,
                                                                                                 1.82e-05, 1.2, 1550, 1E-4, 1200, 0, elvloop, 5,
                                                                                                 1.7e-14, 0.004, 1.6, transmission_losses=-2, altApertureDiameter=0.02,

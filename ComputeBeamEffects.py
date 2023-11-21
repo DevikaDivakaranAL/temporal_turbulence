@@ -1,12 +1,13 @@
 import mpmath as mp
 from LinkedAttribute import *
 
-
 class ComputeBeamEffects(object):
     """
-    Computes the beam effects including effective beam radius and beam wander due to atmospheric turbulence.
-    Utilizes linked attributes from refractive index and turbulence strength objects.
+    This class computes the beam effects, including effective beam radius and beam wander, due to atmospheric turbulence.
+    It utilizes linked attributes from instances of refractive index and turbulence strength objects to calculate these effects.
     """
+
+    # Linking attributes from other classes for direct access
     c2n = LinkedAttribute('refractiveIndexObject')
     geometry = LinkedAttribute('turbulenceStrengthObject')
     ALT_altitude = LinkedAttribute('turbulenceStrengthObject')
@@ -20,59 +21,63 @@ class ComputeBeamEffects(object):
     k = LinkedAttribute('turbulenceStrengthObject')
     turbulence_strength = LinkedAttribute('turbulenceStrengthObject')
 
-    def __init__(self, refractiveIndexObject,turbulenceStrengthObject):
+    def __init__(self, refractiveIndexObject, turbulenceStrengthObject):
         """
-               Initializes the ComputeBeamEffects class.
+        Initializes the ComputeBeamEffects class.
 
-               Parameters:
-               - refractiveIndexObject: Instance of ComputeRefractiveIndexStructure.
-               - turbulenceStrengthObject: Instance of ComputeTurbulenceStrength.
-               """
-        # ACCESSED PARAMETERS
-        self.refractiveIndexObject = refractiveIndexObject                  # ComputeRefractiveIndexStructure instance
-        self.c2n = refractiveIndexObject.c2n                                # function,  function of c2n (in m**(-2/3)) vs altitude of height, taken from ComputeRefractiveIndexStructure instance
+        Parameters:
+        - refractiveIndexObject: Instance of ComputeRefractiveIndexStructure.
+        - turbulenceStrengthObject: Instance of ComputeTurbulenceStrength.
+        """
+        # Accessing parameters from other instances
+        self.refractiveIndexObject = refractiveIndexObject                  # Instance for refractive index calculations
+        self.c2n = refractiveIndexObject.c2n                                # Function of c2n vs altitude
 
-        self.turbulenceStrengthObject = turbulenceStrengthObject           # ComputeTurbulenceStrength instance
-        self.geometry = turbulenceStrengthObject.geometry                  # string,    link geometry, taken from ComputeTurbulenceStrength instance
-        self.ALT_altitude = turbulenceStrengthObject.ALT_altitude          # float,     ALT altitude (in m), taken from ComputeTurbulenceStrength instance
-        self.SLT_altitude = turbulenceStrengthObject.SLT_altitude          # float,     SLT altitude (in m), taken from ComputeTurbulenceStrength instance
-        self.zenith_angle_rad = turbulenceStrengthObject.zenith_angle_rad  #float,     zenith angle (in rad), taken from ComputeTurbulenceStrength instance
-        self.wavelength = turbulenceStrengthObject.wavelength              # float,     laser wavelength (in m), taken from ComputeTurbulenceStrength instance
-        self.W_0 = turbulenceStrengthObject.W_0                            # float,     beam waist at transmitter (in m), taken from ComputeTurbulenceStrength instance
-        self.W = turbulenceStrengthObject.W                                # float,     diffractive beam radius at the receiver (in m), taken from ComputeTurbulenceStrength instance
-        self.r_0 = turbulenceStrengthObject.r_0                            # float,     Fried parameter (in m), taken from ComputeTurbulenceStrength instance
-        self.cap_lambda = turbulenceStrengthObject.cap_lambda              # float,     adimensional beam parameter at the receiver, taken from ComputeTurbulenceStrength instance
-        self.k = turbulenceStrengthObject.k                                # float,     laser wavenumber (in m**-1), taken from ComputeTurbulenceStrength instance
-        self.turbulence_strength = turbulenceStrengthObject.turbulence_strength  # string,    turbulence strength, taken from ComputeTurbulenceStrength instance
+        self.turbulenceStrengthObject = turbulenceStrengthObject            # Instance for turbulence strength calculations
+        self.geometry = turbulenceStrengthObject.geometry                   # Link geometry (uplink or downlink)
+        self.ALT_altitude = turbulenceStrengthObject.ALT_altitude           # ALT altitude in meters
+        self.SLT_altitude = turbulenceStrengthObject.SLT_altitude           # SLT altitude in meters
+        self.zenith_angle_rad = turbulenceStrengthObject.zenith_angle_rad   # Zenith angle in radians
+        self.wavelength = turbulenceStrengthObject.wavelength               # Laser wavelength in meters
+        self.W_0 = turbulenceStrengthObject.W_0                             # Beam waist at transmitter in meters
+        self.W = turbulenceStrengthObject.W                                 # Diffractive beam radius at receiver in meters
+        self.r_0 = turbulenceStrengthObject.r_0                             # Fried parameter in meters
+        self.cap_lambda = turbulenceStrengthObject.cap_lambda               # Adimensional beam parameter at receiver
+        self.k = turbulenceStrengthObject.k                                 # Laser wavenumber
+        self.turbulence_strength = turbulenceStrengthObject.turbulence_strength  # Turbulence strength category
 
-        # COMPUTED PARAMETERS
-        self.W_eff = None                                                   # float,    long term beam radius at the receiver (in m) including optical turbulence effects, by default None
-        self.r2_c = None                                                    # float,    beam wander variance at receiver (in m), by default None
+        # Parameters to be computed
+        self.W_eff = None                                                   # Long-term beam radius at receiver, including optical turbulence effects
+        self.r2_c = None                                                    # Beam wander variance at receiver
 
     def compute_r2_c(self):
-        """Computes the beam wander displacement variance """
-
-        """" Andrews et al.: Strehl ratio and scintillation theory, eq. 20 """
-        self.r2_c = float(0.54 * (self.SLT_altitude - self.ALT_altitude)**2 * mp.sec(self.zenith_angle_rad)**2 * (
-                    self.wavelength / (2 * self.W_0))**2 * (2 * self.W_0 / self.r_0)**(5./3.))
-
+        """
+        Computes the beam wander displacement variance.
+        This variance characterizes the lateral displacement of the beam centroid due to atmospheric turbulence.
+        Reference: Andrews et al., Strehl ratio and scintillation theory (Eq. 20)
+        """
+        self.r2_c = float(0.54 * (self.SLT_altitude - self.ALT_altitude)**2 * mp.sec(self.zenith_angle_rad)**2 *
+                          (self.wavelength / (2 * self.W_0))**2 * (2 * self.W_0 / self.r_0)**(5./3.))
 
     def compute_W_eff(self):
-        """Computes the long-term spot size for the uplink channel """
-
-        # Strong and weak case
-        """" Andrews p.500 eq. 48 """
+        """
+        Computes the long-term spot size for the uplink channel.
+        The effective spot size takes into account the spreading of the beam due to atmospheric turbulence.
+        Reference: Andrews, Laser Beam Propagation through Random Media (Eq. 48 on p.500)
+        """
         D_0 = mp.sqrt(8) * self.W_0
-        self.W_eff = float(self.W*(1+ (D_0/self.r_0)**(5/3))**(3/5))
+        self.W_eff = float(self.W * (1 + (D_0 / self.r_0)**(5/3))**(3/5))
 
     def compute_beam_effects(self):
         """
         Determines the beam effects based on the communication geometry and turbulence strength.
-        Assigns computed values to the appropriate attributes.
+        This includes calculating the effective beam radius and beam wander variance for uplink scenarios.
+        For downlink, the effective beam radius is assumed to be the same as the diffractive beam radius.
         """
         if self.geometry == 'uplink':
             self.compute_W_eff()
             if self.turbulence_strength == 'weak':
                 self.compute_r2_c()
         else:
-            self.W_eff = self.W # For downlink, the effective beam radius is the same as the diffractive beam radius
+            # In downlink geometry, the effective beam radius is assumed to be the same as the diffractive beam radius
+            self.W_eff = self.W
